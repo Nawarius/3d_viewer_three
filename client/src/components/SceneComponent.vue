@@ -9,6 +9,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import LoaderGLB from '../classes/LoaderGLB'
+import LoaderFile from '../classes/LoaderFile'
 
 let getLoadersContext = () => ({})
 
@@ -22,9 +23,12 @@ export default {
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableZoom = true
 
+    const light = new THREE.DirectionalLight(0xffffff, 1)
+    light.position.set(0, 10, 10)
+    scene.add(light)
+
     const geometry = new THREE.BoxGeometry(1, 1, 1)
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-    const cube = new THREE.Mesh(geometry, material)
+    const cube = new THREE.Mesh(geometry)
     scene.add(cube)
 
     camera.position.z = 5
@@ -37,7 +41,11 @@ export default {
     })
 
     const LoaderGlbInst = new LoaderGLB(scene)
-    getLoadersContext = () => ({ LoaderGlbInst })
+    LoaderGlbInst.init()
+
+    const LoaderFileInst = new LoaderFile()
+
+    getLoadersContext = () => ({ LoaderGlbInst, LoaderFileInst })
 
     return {
       renderer,
@@ -56,9 +64,19 @@ export default {
         this.renderer.render(this.scene, this.camera)
         this.controls.update()
     },
-    uploadGLB (e) {
-      const { LoaderGlbInst } = getLoadersContext()
-      LoaderGlbInst.importGLB(e)
+    async uploadGLB (e) {
+      const { LoaderGlbInst, LoaderFileInst } = getLoadersContext()
+      const dataUrl = LoaderFileInst.getDataUrl(e)
+      const mesh = await LoaderGlbInst.importBIN(dataUrl)
+
+      const geometry = mesh.geometry
+      geometry.computeBoundingBox()
+      const center = new THREE.Vector3()
+      geometry.boundingBox.getCenter(center)
+
+      console.log(center)
+      this.controls.target = center
+      
     },
     clickGlbInput () {
       const input = document.getElementById('load_glb_input')
