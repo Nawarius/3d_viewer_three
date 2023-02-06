@@ -1,4 +1,4 @@
-import { Scene, BufferGeometry, BufferAttribute, Mesh, MeshBasicMaterial, Vector3 } from "three"
+import { Scene, BufferGeometry, BufferAttribute, Mesh, MeshBasicMaterial, Vector3, MeshLambertMaterial, MeshStandardMaterial } from "three"
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
 
@@ -43,10 +43,11 @@ class LoaderGLB {
 
         geometry.computeVertexNormals()
 
-        const material = new MeshBasicMaterial()
-        material.vertexColors = true
+        const material = new MeshStandardMaterial({ vertexColors: true })
 
         const mesh = new Mesh(geometry, material)
+        mesh.castShadow = true
+        mesh.receiveShadow = true
 
         this.scene.add(mesh)
 
